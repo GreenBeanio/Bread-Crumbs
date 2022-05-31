@@ -13,11 +13,12 @@ public class Shortcut_Controller : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Unlock(Unlocked);
+
     }
     public void Unlock(bool status)
     {
-        if(status == true)
+        Unlocked = status;
+        if (status == true)
         {
             this.gameObject.GetComponent<MeshRenderer>().enabled = false;
             this.gameObject.GetComponent<BoxCollider>().enabled = false;

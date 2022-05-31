@@ -26,6 +26,25 @@ public class Player_Controller : MonoBehaviour
     public float shortcutDistance = 1f;
     public LayerMask shortcutMask;
     public bool shortcutInRange;
+    //Attack Varaibles
+    public Transform fire_point;
+    public GameObject butter;
+    public GameObject butter_hand;
+    public float projectile_speed = 15f;
+    public float attack_wait = 2f;
+    float attack_elapsed;
+    public bool attacked;
+    //Damage Variables
+    public float damage_wait = 5f;
+    float damage_elapsed;
+    bool damaged;
+    //Health variables
+    public float health = 100;
+    public float max_health = 100;
+    public int lives = 3;
+    public int max_lives = 3;
+    //Spawn
+    public Transform spawn_point;
 
     // Start is called before the first frame update
     void Start()
@@ -74,8 +93,39 @@ public class Player_Controller : MonoBehaviour
             Collider[] shortcuts = Physics.OverlapSphere(shortcutCheck.position, shortcutDistance, shortcutMask);
             foreach(var shortcut in shortcuts)
             {
-                //shortcut.GetComponentInParent<Shortcut_Controller>().Unlock(true);
+                shortcut.GetComponent<Shortcut_Controller>().Unlock(true);
                 Debug.Log(shortcut.name);
+            }
+        }
+        //Attacking
+        if(Input.GetMouseButton(0))
+        {
+            if(attacked == false)
+            {
+                attacked = true;
+                Attack();
+            }
+        }
+        //Check attack status
+        if(attacked == true)
+        {
+            attack_elapsed = attack_elapsed + Time.deltaTime;
+            butter_hand.SetActive(false);
+            if (attack_elapsed >= attack_wait)
+            {
+                attacked = false;
+                attack_elapsed = 0;
+                butter_hand.SetActive(true);
+            }
+        }
+        //Check damaged status
+        if(damaged == true)
+        {
+            damage_elapsed = damage_elapsed + Time.deltaTime;
+            if(damage_elapsed >= damage_wait)
+            {
+                damaged = false;
+                damage_elapsed = 0;
             }
         }
     }
@@ -90,6 +140,72 @@ public class Player_Controller : MonoBehaviour
         if(collision.gameObject.name == "Shortcut")
         {
             collision.gameObject.GetComponent<Shortcut_Controller>().Unlock(true);
+        }
+    }
+    //Attack
+    void Attack()
+    {
+        GameObject butter_shot = Instantiate(butter, fire_point.position, fire_point.rotation, null);
+        butter_shot.GetComponent<Rigidbody>().AddRelativeForce(butter_shot.transform.forward * projectile_speed);
+    }
+    //Damaged
+    public void take_damage(float damage_amount)
+    {
+        if (damaged == false)
+        {
+            damaged = true;
+            float new_health = health - damage_amount;
+            if(health > 0)
+            {
+                health = new_health;
+            }
+            else
+            {
+                health = 0;
+                Die();
+            }
+        }
+    }
+    //Healing
+    public void healing(float healing_amount)
+    {
+        float new_health = health + healing_amount;
+        if(new_health > max_health)
+        {
+            health = max_health;
+        }
+        else
+        {
+            health = new_health;
+        }
+    }
+    //Lives
+    public void lives_change(int lives_amount)
+    {
+        int new_lives = lives + lives_amount;
+        if(new_lives > max_lives)
+        {
+            lives = max_lives;
+        }
+        else
+        {
+            lives = new_lives;
+        }
+    }
+    //Die
+    void Die()
+    {
+        int new_lives = lives - 1;
+        if(new_lives >= 0)
+        {
+            health = max_health;
+            damaged = true;
+            attacked = false;
+            this.transform.position = spawn_point.position;
+        }
+        else
+        {
+            //End Game
         }
     }
 }
